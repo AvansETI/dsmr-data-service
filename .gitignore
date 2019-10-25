@@ -23,3 +23,5 @@ cmake-build-*
 
 *.code-workspace
 .vscode
+.pyc
+__pycache__

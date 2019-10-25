@@ -6,7 +6,7 @@
 #
 
 import paho.mqtt.client as mqtt
-import dsmr as parser
+from dsmr.dsmrparser import Parser
 import json
 import pprint
 
@@ -16,21 +16,22 @@ class MqttClient(mqtt.Client):
 
 	def on_message(self, mqttc, obj, msg):
 		print("TOPIC: " + str(msg.topic))
+
 		if str(msg.topic) != "smartmeter/raw":
+			print("Invalid topic!")
 			return
 
-		payload = str(msg.payload)
-		json_payload = json.loads(payload)
+		json_payload = json.loads(msg.payload)
 		datagram = json_payload["datagram"]
 		signature = json_payload["signature"]
-
 		if datagram == None:
+			print("Invalid packet: no datagram present!")
 			return
 
 		if signature == None:
+			print("Invalid packet: no signature present!")
 			return
-
-		parsed = self.parser.parse(datagram)
+		parsed = self.dsmrParser.parse(datagram)
 		parsed["signature"] = signature
 		self.publish("smartmeter/log", json.dumps(parsed))
 
@@ -40,7 +41,7 @@ class MqttClient(mqtt.Client):
 			self.username_pw_set(user, passw)
 
 		self.connect(host, port)
-		self.parser = parser.Parser()
+		self.dsmrParser = Parser()
 		self.subscribe("smartmeter/raw")
 
 		rc = 0
