@@ -22,8 +22,8 @@ class MqttClient(mqtt.Client):
 			return
 
 		json_payload = json.loads(msg.payload)
-		datagram = json_payload["datagram"]
-		signature = json_payload["signature"]
+		datagram = json_payload["datagram"]["p1"]
+		signature = json_payload["datagram"]["signature"]
 		if datagram == None:
 			print("Invalid packet: no datagram present!")
 			return
@@ -34,6 +34,8 @@ class MqttClient(mqtt.Client):
 		parsed = self.dsmrParser.parse(datagram)
 		parsed["signature"] = signature
 		self.publish("smartmeter/log", json.dumps(parsed))
+		topic = "smartmeter/log/%s" % signature
+		self.publish(topic, json.dumps(parsed))
 
 
 	def run(self, host, port, user = None, passw = None):
